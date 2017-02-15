@@ -1,7 +1,3 @@
-# WRC
-# Overview
-
-
 Overview
 ==================
 This project is about case-based recognition, which I have made it as an api.
