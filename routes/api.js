@@ -16,9 +16,11 @@ router.get('/GetALLCases',function(req, res){
 
 router.get('/findByOraId', function(req, res){
 
-    wrc.findScoreFromOraId('ora-28836',function(req,res){
+    /*wrc.findScoreFromOraId([{"ora_id": 'ORA-00350: log string of instance string (thread string) needs to be archived'}],function(req,res){
+
         //console.log("RESPONSE:" , JSON.parse(res).results[0]);
-    });
+    });*/
+    wrc.findScoreFromOraId([{"ora_id": 'ORA-00037: cannot switch to a session belonging to a different server group'}],function(req,res){});
 
     res.send(null);
 });

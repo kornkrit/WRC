@@ -5,21 +5,42 @@ var pool = require('../databases/databaseHelper.js');
 var db = new pool();
 
 module.exports = {
-    findScoreFromOraId: function (ora_id, callback) {
-        var result;
+    findScoreFromOraId: function (oraSet, callback) {
+        var result = new Array();
+        var testObj = new Array();
+        var queryStr = 'SELECT case_id,ora_id FROM cases ';
+
+        for(var i = 0; i < oraSet.length; i++){
+            testObj.push(findWordCount(oraSet[i].ora_id));
+            for(var j = 0; j < (testObj[i]).length; j++) {
+            if (i == 0 && j ==0)
+                queryStr += 'WHERE ora_id LIKE \'%' + (testObj[i])[j].word + '%\'';
+            else
+                queryStr += 'OR ora_id LIKE \'%' + (testObj[i])[j].word + '%\'';
+            }
+         }
+        queryStr += ';';
         db.getConnection(function (err, conn) {
-            var queryStr = 'SELECT case_id,ora_id FROM cases WHERE ora_id LIKE \'%' + ora_id + '%\';';
             conn.query(queryStr, function (err, rows) {
-                console.log("Connection string: ", queryStr);
-                console.log("Result: ", JSON.stringify(rows));
-                if (!err) {
-                    //result = '{ "results" :'+ JSON.stringify(rows) + '}';
-                    //for(var i = 0; i < rows.length; i++){
-                    console.log("Before Function");
-                    findScore("this is a cat this", "this is a dog");
-                    //}
+                var trainResult = new Array();
+                //console.log(rows);
+                if (!err && rows.length > 0){
+                    for(var j = 0; j< rows.length; j++){
+                        trainResult.push({"ID" : j,"obj" : findWordCount(rows[j].ora_id)});
+                    }
+                    for(var i = 0; i < testObj.length; i++){
+                        for(var j = 0; j < trainResult.length; j++){
+                            var score = findScore(testObj[i],trainResult[j].obj);
+                            if(score > 0.5)
+                            //console.log(JSON.stringify(oraSet[i].ora_id) + "," + JSON.stringify(rows[trainResult[j].ID]) + "," + Math.round(score * 100) / 100);
+                            result.push({"Word" : JSON.stringify(rows[trainResult[j].ID]), "score" : (Math.round(score * 100) / 100) });
+                        }
+                    }
+                    print(result.sort(1));
                     return callback(null,result);
-                } else {
+                } else if(rows.length == 0 ){
+                    console.error("It is empty.");
+                }else {
                     console.error('<--- Something went error --->');
                     console.error(err);
                     return callback(err,null);
@@ -30,59 +51,62 @@ module.exports = {
     }
 };
 
-
-function findScore(tested, trained){
-    console.log(tested + " and " + trained);
-
-    var testSet = tested.split(" ");
-    var trainSet = trained.split(" ");
-
-    var testSetCounted = new Array();
-    var trainSetCounted = new Array();
-
-    testSet.sort();
-    trainSet.sort();
-
-    var current = null;
-    var testSetCount = 0;
-    for (var i = 0; i < testSet.length; i++) {
-        if (testSet[i] != current) {
-            if (testSetCount > 0) {
-                //console.log(current + ' comes --> ' + testSetCount + ' times<br>');
-                //testSetCounted.push( ' "word" : "' + current + '", "wordCount": ' + testSetCount);
-                testSetCounted.push({"word":current,"wordCount":testSetCount});
-            }
-            current = testSet[i];
-            testSetCount = 1;
-        } else {
-            testSetCount++;
-        }
-    }
-    if (testSetCount > 0) {
-        testSetCounted.push({"word":current,"wordCount":testSetCount});
-    }
-
-    console.log(testSetCounted);
-
-
-    var currentTrain = null;
-    var trainSetCount = 0;
-    for (var i = 0; i < testSetCounted.length; i++) {
-        console.log("-->" + testSetCounted[i].word);
-        if (trainSet[i] != currentTrain) {
-            if (trainSetCount > 0) {
-                trainSetCounted.push({"word":current,"wordCount":trainSetCount});
-            }
-            currentTrain = JSON.stringify(testSetCounted)[i].word;
-            trainSetCount = 1;
-        } else {
-            trainSetCount++;
-        }
-    }
-    if (trainSetCount > 0) {
-        trainSetCounted.push({"word":current,"wordCount":trainSetCount});
-    }
-
-    console.log(JSON.stringify(trainSetCounted));
+function print(str){
+    console.log(str);
 }
 
+function findWordCount(word){
+    var wordSet = word.split(" ");
+    var result = new Array();
+    wordSet.sort();
+    var current = null;
+    var count = 0;
+
+    for (var i = 0; i < wordSet.length; i++) {
+        if (wordSet[i] != current) {
+            if (count > 0) {
+                result.push({ "word" : current, "wordCount" : count});
+            }
+            current = wordSet[i];
+            count = 1;
+        } else {
+            count++;
+        }
+    }
+    if (count > 0) {
+        result.push({ "word" : current, "wordCount" : count});
+    }
+    return result;
+}
+
+
+function findScore(testSet,trainSet){
+ var resultObj = new Array();
+    for(var i = 0; i < testSet.length; i++){
+        var chk = 0;
+        for(var j = 0; j < trainSet.length; j++){
+            if(testSet[i].word.toLowerCase() == trainSet[j].word.toLowerCase()){
+                resultObj.push({"word" : testSet[i].word, "testWordCount" : testSet[i].wordCount,"trainWordCount" : trainSet[j].wordCount});
+                break;
+            }
+            else{
+                chk++;
+            }
+            if(chk == trainSet.length){
+                resultObj.push({"word" : testSet[i].word, "testWordCount" : testSet[i].wordCount,"trainWordCount" : 0});
+                chk = 0;
+            }
+
+        }
+    }
+
+    var x = 0,y1 = 1, y2 = 1;
+    for(var i = 0; i < resultObj.length; i++){
+        x += (resultObj[i].testWordCount * resultObj[i].trainWordCount);
+        y1 += (resultObj[i].testWordCount * resultObj[i].testWordCount);
+        y2 += (resultObj[i].trainWordCount * resultObj[i].trainWordCount);
+        //print(resultObj[i].word + ":" + resultObj[i].testWordCount + "*" + resultObj[i].trainWordCount + "," + resultObj[i].testWordCount + "*" + resultObj[i].testWordCount + "," + resultObj[i].trainWordCount +"*"+ resultObj[i].trainWordCount);
+    }
+    var result = x/(( Math.sqrt(y1) * Math.sqrt(y2)));
+    return result;
+}
