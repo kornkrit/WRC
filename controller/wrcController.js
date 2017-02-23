@@ -33,7 +33,7 @@ module.exports = {
                             var score = findScore(testObj[i],trainResult[j].obj);
                             if(score > 0.5)
                             //console.log(JSON.stringify(oraSet[i].ora_id) + "," + JSON.stringify(rows[trainResult[j].ID]) + "," + Math.round(score * 100) / 100);
-                            result.push({"Word" : JSON.stringify(rows[trainResult[j].ID]), "score" : (Math.round(score * 100) / 100) });
+                            result.push({"Word" : rows[trainResult[j].ID], "score" : (Math.round(score * 100) / 100) });
                         }
                     }
                     print(result.sort(1));
