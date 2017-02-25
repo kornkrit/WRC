@@ -8,7 +8,7 @@ module.exports = {
     findScoreFromOraId: function (oraSet, callback) {
         var result = new Array();
         var testObj = new Array();
-        var queryStr = 'SELECT case_id,ora_id FROM cases ';
+        var queryStr = 'SELECT * FROM cases ';
 
         for(var i = 0; i < oraSet.length; i++){
             testObj.push(findWordCount(oraSet[i].ora_id));
@@ -36,7 +36,6 @@ module.exports = {
                             result.push({"Word" : rows[trainResult[j].ID], "score" : (Math.round(score * 100) / 100) });
                         }
                     }
-                    print(result.sort(1));
                     return callback(null,result);
                 } else if(rows.length == 0 ){
                     console.error("It is empty.");
