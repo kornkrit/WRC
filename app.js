@@ -13,7 +13,6 @@ var api = require('./routes/api');
 //Database session
 var db = require('./databases/databaseHelper');
 
-
 var app = express();
 
 // view engine setup

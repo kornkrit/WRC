@@ -4,51 +4,6 @@
 var pool = require('../databases/databaseHelper.js');
 var db = new pool();
 
-module.exports = {
-    findScoreFromOraId: function (oraSet, callback) {
-        var result = new Array();
-        var testObj = new Array();
-        var queryStr = 'SELECT * FROM cases ';
-
-        for(var i = 0; i < oraSet.length; i++){
-            testObj.push(findWordCount(oraSet[i].ora_id));
-            for(var j = 0; j < (testObj[i]).length; j++) {
-            if (i == 0 && j ==0)
-                queryStr += 'WHERE ora_id LIKE \'%' + (testObj[i])[j].word + '%\'';
-            else
-                queryStr += 'OR ora_id LIKE \'%' + (testObj[i])[j].word + '%\'';
-            }
-         }
-        queryStr += ';';
-        db.getConnection(function (err, conn) {
-            conn.query(queryStr, function (err, rows) {
-                var trainResult = new Array();
-                //console.log(rows);
-                if (!err && rows.length > 0){
-                    for(var j = 0; j< rows.length; j++){
-                        trainResult.push({"ID" : j,"obj" : findWordCount(rows[j].ora_id)});
-                    }
-                    for(var i = 0; i < testObj.length; i++){
-                        for(var j = 0; j < trainResult.length; j++){
-                            var score = findScore(testObj[i],trainResult[j].obj);
-                            if(score > 0.5)
-                            //console.log(JSON.stringify(oraSet[i].ora_id) + "," + JSON.stringify(rows[trainResult[j].ID]) + "," + Math.round(score * 100) / 100);
-                            result.push({"Word" : rows[trainResult[j].ID], "score" : (Math.round(score * 100) / 100) });
-                        }
-                    }
-                    return callback(null,result);
-                } else if(rows.length == 0 ){
-                    console.error("It is empty.");
-                }else {
-                    console.error('<--- Something went error --->');
-                    console.error(err);
-                    return callback(err,null);
-                }
-            });
-            conn.release();
-        });
-    }
-};
 
 function print(str){
     console.log(str);
@@ -78,9 +33,8 @@ function findWordCount(word){
     return result;
 }
 
-
 function findScore(testSet,trainSet){
- var resultObj = new Array();
+    var resultObj = new Array();
     for(var i = 0; i < testSet.length; i++){
         var chk = 0;
         for(var j = 0; j < trainSet.length; j++){
@@ -109,3 +63,51 @@ function findScore(testSet,trainSet){
     var result = x/(( Math.sqrt(y1) * Math.sqrt(y2)));
     return result;
 }
+
+module.exports = {
+    findScoreFromOraId: function (oraSet, callback) {
+        var result = new Array();
+        var testObj = new Array();
+        var queryStr = 'SELECT * FROM cases ';
+
+        for(var i = 0; i < oraSet.length; i++){
+            testObj.push(findWordCount(oraSet[i].ora_id));
+            for(var j = 0; j < (testObj[i]).length; j++) {
+            if (i == 0 && j ==0)
+                queryStr += 'WHERE ora_id LIKE \'%' + (testObj[i])[j].word + '%\'';
+            else
+                queryStr += 'OR ora_id LIKE \'%' + (testObj[i])[j].word + '%\'';
+            }
+         }
+        queryStr += ';';
+        db.getConnection(function (err, conn) {
+            conn.query(queryStr, function (err, rows) {
+                var trainResult = new Array();
+                //console.log(rows);
+                if (!err && rows.length > 0){
+                    for(var j = 0; j< rows.length; j++){
+                        trainResult.push({"ID" : j,"obj" : findWordCount(rows[j].ora_id)});
+                    }
+                    for(var i = 0; i < testObj.length; i++){
+                        for(var j = 0; j < trainResult.length; j++){
+                            var score = findScore(testObj[i],trainResult[j].obj);
+                            if(score > 0.5)
+                            result.push({"Word" : rows[trainResult[j].ID], "score" : (Math.round(score * 100) / 100) });
+                        }
+                    }
+                    return callback(null,{"Object" : {"KeySearch" : oraSet, " ObjResults" : result}});
+                }else if(rows.length == 0 ){
+                    console.error("It is empty.");
+                    result.push({"Object" : null});
+                    return callback(null,{"Object" : {"KeySearch" : oraSet, " ObjResults" : result}});
+                }else {
+                    console.error('<--- Something went error --->');
+                    console.error(err);
+                    return callback(err,err);
+                }
+            });
+            conn.release();
+        });
+    }
+};
+
