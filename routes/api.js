@@ -20,7 +20,7 @@ router.post('/findByOraId', function(req, res){
                 wrc.findScoreFromOraId([{ora_id: req.body.searchSet[i].searchKey}], function (request, response) {
                     result.push(response);
                     if (counter == req.body.searchSet.length - 1) {
-                        res.send(result);
+                        res.send({"RootWord" : result});
                     }
                     counter++;
                 });

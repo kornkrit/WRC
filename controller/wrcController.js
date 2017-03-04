@@ -92,14 +92,14 @@ module.exports = {
                         for(var j = 0; j < trainResult.length; j++){
                             var score = findScore(testObj[i],trainResult[j].obj);
                             if(score > 0.5)
-                            result.push({"Word" : rows[trainResult[j].ID], "score" : (Math.round(score * 100) / 100) });
+                            result.push({"word" : [{ "caused" : rows[trainResult[j].ID].caused ,"actions": rows[trainResult[j].ID].actions, "score" : (Math.round(score * 100) / 100) }]});
                         }
                     }
-                    return callback(null,{"Object" : {"KeySearch" : oraSet, " ObjResults" : result}});
+                    return callback(null,{"Results" : [{"KeySearch" : oraSet, "ObjResults" : result}]});
                 }else if(rows.length == 0 ){
                     console.error("It is empty.");
-                    result.push({"Object" : null});
-                    return callback(null,{"Object" : {"KeySearch" : oraSet, " ObjResults" : result}});
+                    result.push({"Results" : null});
+                    return callback(null,{"Results" : [{"KeySearch" : oraSet, "ObjResults" : result}]});
                 }else {
                     console.error('<--- Something went error --->');
                     console.error(err);
