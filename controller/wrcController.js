@@ -38,28 +38,24 @@ function findWordCount(word){
 
 function findScore(testSet,trainSet){
     var resultObj = new Array();
-    console.log(testSet.length + ":" + trainSet.length);
     for(var i = 0; i < testSet.length; i++){
         var chk = 0;
         for(var j = 0; j < trainSet.length; j++){
-
-            var xx = testSet[i].word.toLowerCase() === trainSet[j].word.toLowerCase();
-            if(xx){
-                console.log("Logic " + xx);
-                console.log("Logic " + testSet[i].word.toLowerCase() +":"+trainSet[j].word.toLowerCase());
+            if(testSet[i].word.toLowerCase() === trainSet[j].word.toLowerCase()){
                 resultObj.push({"word" : testSet[i].word, "testWordCount" : testSet[i].wordCount,"trainWordCount" : trainSet[j].wordCount});
-                //break;
-            }
-            else{
+                break;
+            }else{
                 chk++;
             }
+
             if(chk == trainSet.length){
                 resultObj.push({"word" : testSet[i].word, "testWordCount" : testSet[i].wordCount,"trainWordCount" : 0});
                 chk = 0;
             }
-
         }
     }
+
+
     console.log(resultObj.toString());
     var x = 0,y1 = 0, y2 = 0;
     for(var i = 0; i < resultObj.length; i++){
