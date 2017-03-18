@@ -68,6 +68,52 @@ function findScore(testSet,trainSet){
     return result;
 }
 
+
+
+function findScoreQueue(testSet,trainSet){
+    var resultObj = new Array();
+    var boolChk = new Array(trainSet.length);
+    for(var j = 0; j < boolChk; j++){
+        boolChk[j] = false;
+    }
+    for(var i = 0; i < testSet.length; i++){
+        var chk = 0;
+
+        for(var j = 0; j < trainSet.length; j++){
+            if(testSet[i].word.toLowerCase() === trainSet[j].word.toLowerCase()){
+                resultObj.push({"word" : testSet[i].word, "testWordCount" : testSet[i].wordCount,"trainWordCount" : trainSet[j].wordCount});
+                boolChk[j] = true;
+                break;
+            }else{
+                chk++;
+            }
+
+            if(chk == trainSet.length){
+                resultObj.push({"word" : testSet[i].word, "testWordCount" : testSet[i].wordCount,"trainWordCount" : 0});
+                chk = 0;
+            }
+        }
+
+    }
+
+    for(var j = 0 ; j < boolChk.length; j++){
+        console.log(boolChk[j]);
+        if(!boolChk[j]){
+            console.log("EIEI" + trainSet[j].word);
+            resultObj.push({"word" : trainSet[j].word, "testWordCount" : 0,"trainWordCount" : trainSet[j].wordCount});
+        }
+    }
+
+    var x = 0,y1 = 0, y2 = 0;
+    for(var i = 0; i < resultObj.length; i++){
+        x += (resultObj[i].testWordCount * resultObj[i].trainWordCount);
+        y1 += (resultObj[i].testWordCount * resultObj[i].testWordCount);
+        y2 += (resultObj[i].trainWordCount * resultObj[i].trainWordCount);
+    }
+    var result = x/(( Math.sqrt(y1) * Math.sqrt(y2)));
+    return result;
+}
+
 module.exports = {
     findScoreFromOraId: function (oraSet, callback) {
         var result = new Array();
@@ -93,7 +139,7 @@ module.exports = {
                     }
                     for(var i = 0; i < testObj.length; i++){
                         for(var j = 0; j < trainResult.length; j++){
-                            var score = findScore(testObj[i],trainResult[j].obj);
+                            var score = findScoreQueue(testObj[i],trainResult[j].obj);
                             if(score > 0.8)
                             result.push({"word" : [{ "caseSearch" : rows[trainResult[j].ID].ora_id, "caused" : rows[trainResult[j].ID].caused ,"actions" : rows[trainResult[j].ID].actions, "score" : (Math.round(score * 100) / 100) }]});
                         }

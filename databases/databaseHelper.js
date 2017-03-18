@@ -8,9 +8,9 @@ module.exports = function(){
     if(!db){
         db = mysql.createPool({
             host     : 'localhost',
-            user     : 'weifotha_root',
-            password : 'd36u84bg',
-            database : 'weifotha_casebased'
+            user     : 'root',
+            password : '1234',
+            database : 'casebased'
         });
     }
     return db;
