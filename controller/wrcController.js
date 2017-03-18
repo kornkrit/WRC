@@ -4,11 +4,6 @@
 var pool = require('../databases/databaseHelper.js');
 var db = new pool();
 
-
-function print(str){
-    console.log(str);
-}
-
 function findWordCount(word){
     var wordSet = word.split(" ");
     var result = new Array();
@@ -55,8 +50,6 @@ function findScore(testSet,trainSet){
         }
     }
 
-
-    console.log(resultObj.toString());
     var x = 0,y1 = 0, y2 = 0;
     for(var i = 0; i < resultObj.length; i++){
         x += (resultObj[i].testWordCount * resultObj[i].trainWordCount);
@@ -64,7 +57,6 @@ function findScore(testSet,trainSet){
         y2 += (resultObj[i].trainWordCount * resultObj[i].trainWordCount);
     }
     var result = x/(( Math.sqrt(y1) * Math.sqrt(y2)));
-    console.log("Result: " + result);
     return result;
 }
 
@@ -97,9 +89,7 @@ function findScoreQueue(testSet,trainSet){
     }
 
     for(var j = 0 ; j < boolChk.length; j++){
-        console.log(boolChk[j]);
         if(!boolChk[j]){
-            console.log("EIEI" + trainSet[j].word);
             resultObj.push({"word" : trainSet[j].word, "testWordCount" : 0,"trainWordCount" : trainSet[j].wordCount});
         }
     }
